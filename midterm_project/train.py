@@ -9,7 +9,7 @@ from sklearn.preprocessing import OneHotEncoder, RobustScaler, OrdinalEncoder, T
 from sklearn.metrics import roc_auc_score
 import xgboost as xgb
 
-# Parameter grid
+# parameter grid
 def get_xgb_parameters():
     return {
         'n_estimators': [100, 200],
@@ -20,16 +20,16 @@ def get_xgb_parameters():
         'scale_pos_weight': [3.0, 3.04]
     }
 
-# Number of folds for GridSearchCV
+# number of folds for GridSearchCV
 cv = 5
 random_state = 42
 
-# Reading and cleaning the data
+# reading and cleaning the data
 def load_and_clean_data(filepath):
     df_raw = pd.read_csv(filepath)
     df = df_raw.copy()
 
-    # Data cleaning
+    # data cleaning
     df.columns = df.columns.str.lower().str.replace('-', '_')
     categorical_columns = df.select_dtypes(include=['object']).columns
     for c in categorical_columns:
@@ -40,7 +40,7 @@ def load_and_clean_data(filepath):
     df.salary = (df.salary == '>50k').astype('int')
     return df
 
-# Data splitting
+# data splitting
 def split_data(df):
     df_full_train, df_test = train_test_split(df, test_size=0.2, random_state=seed)
     df_train, df_val = train_test_split(df_full_train, test_size=0.25, random_state=seed)
@@ -55,7 +55,7 @@ def split_data(df):
     
     return X_train, X_val, X_test, y_train, y_val, y_test
 
-# Preprocessing
+# preprocessing
 def get_preprocessor():
     categorical_cols = ['relationship', 'marital_status', 'education', 'occupation']
     numerical_cols = ['hours_per_week', 'capital_loss', 'capital_gain', 'age', 'education_num']
@@ -84,7 +84,7 @@ def get_preprocessor():
     
     return preprocessor
 
-# Model training with GridSearchCV
+# model training with GridSearchCV
 def train_model_with_gridsearch(X_train, y_train, preprocessor):
     xgb_model = xgb.XGBClassifier()
     
@@ -105,49 +105,38 @@ def train_model_with_gridsearch(X_train, y_train, preprocessor):
         ('classifier', grid_search)
     ])
     
-    # Fit the model
+    # fit the model
     pipeline.fit(X_train, y_train)
     
-    # Best model and best score
+    # best model and best score
     best_model = grid_search.best_estimator_
     best_score = grid_search.best_score_
     return pipeline, best_model, best_score
 
-# Save the model and preprocessor
+# save the model and preprocessor
 def save_model_and_preprocessor(model, preprocessor, filename):
     with open(filename, 'wb') as f:
         pickle.dump((model, preprocessor), f)
 
-# Main function to orchestrate the entire workflow
+# main function to orchestrate the entire workflow
 def main():
-    # Load and clean the data
-    df = load_and_clean_data('./data/salary.csv')
-    
-    # Split the data into training, validation, and test sets
+    # load and split the dataset
+    df = load_and_clean_data('./data/salary.csv')    
     X_train, X_val, X_test, y_train, y_val, y_test = split_data(df)
     
-    # Get preprocessing steps
     preprocessor = get_preprocessor()
-    
-    # Train the model with GridSearchCV
     print(f"Training the model with GridSearchCV...")
+    
     pipeline, best_model, best_score = train_model_with_gridsearch(X_train, y_train, preprocessor)
-    
-    # Print the best AUC score from GridSearchCV
     print(f"Best AUC score from GridSearchCV: {best_score:.4f}")
-    
-    # Training the final model
     print('Training the final model...')
     pipeline.fit(X_train, y_train)
     y_pred = pipeline.predict_proba(X_test)[:, 1]
-    
-    # AUC on the test set
     auc = roc_auc_score(y_test, y_pred)
     print(f"AUC on the test set: {auc:.4f}")
     
-    # Save the model and preprocessor
+    # save the model and preprocessor
     save_model_and_preprocessor(best_model, preprocessor, 'xgboost_model_with_preprocessor.pkl')
-    
     print("Model training and saving completed.")
 
 if __name__ == '__main__':
