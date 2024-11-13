@@ -45,15 +45,10 @@ The dataset was read using pandas and thoroughly examined. Columns were standard
 Missing values were checked again. Feature importance analysis was conducted, focusing on the target variable (salary). Both numerical and categorical variables were explored separately. Categorical features were examined in relation to the salary rate difference and mutual information. Numerical features were explored using various graphs to understand their distribution, frequency, and correlation.
 
 **3. Model Selection**:
-Using the `Pipeline` function, the most relevant categorical and numerical columns were selected. Categorical features were encoded using `OneHotEncoder`, `OrdinalEncoder`, and `TargetEncoder`. Due to the presence of significant outliers in the numerical features, they were scaled using `RobustScaler`. The preprocessor applied these transformations to two models: Random Forest and XGBoost. Cross-validation was conducted, and the best parameters were identified using `GridSearchCV`. Ultimately, a tuned XGBoost model achieved the highest F1 and ROC scores. Because the target feature were imbalanced, it was possible to adjust the weights on both the Random Forest and XGBoost. On Random Forest, we flaged the parameter `class_weight=balanced` and for XGBoost, we had to calculate manually the `scale_pos_weigth` using the formula
+Using the `Pipeline` function, the most relevant categorical and numerical columns were selected. Categorical features were encoded using `OneHotEncoder`, `OrdinalEncoder`, and `TargetEncoder`. Due to the presence of significant outliers in the numerical features, they were scaled using `RobustScaler`. The preprocessor applied these transformations to two models: Random Forest and XGBoost. Cross-validation was conducted, and the best parameters were identified using `GridSearchCV`. Ultimately, a tuned XGBoost model achieved the highest F1 and ROC scores. Because the target feature were imbalanced, it was possible to adjust the weights on both the Random Forest and XGBoost. On Random Forest, we flaged the parameter `class_weight=balanced` and for XGBoost, we had to calculate manually the `scale_pos_weigth` as follows:
 
-<div align="center">
+`scale_pos_weight = (n examples from majority class) / (n examples from minority class)`
 
-$$
-\text{scale\_pos\_weight} = \frac{\text{nº of examples from the majority class}}{\text{nº of examples from the minority class}}
-$$
-
-</div>
 
 **4. Model Saving and Loading**:
 Both the model and the preprocessor were saved together in a single pickle file for easy reuse. This file was then loaded to demonstrate an example of how predictions can be made using the saved model and preprocessing pipeline.
