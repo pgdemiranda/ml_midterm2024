@@ -37,7 +37,7 @@ All continuous values:
 ### Target Feature
 - salary: <=50K or >50K
 
-## Notebook
+## [Notebook](./midterm_project/notebook.ipynb)
 **1. Data Preparation & Reading**:
 The dataset was read using pandas and thoroughly examined. Columns were standardized, and the data was properly formatted. Missing and duplicate values were checked and removed. Initially, missing values were represented as "?", but these were replaced with NaN and subsequently dropped. The target variable was analyzed for class imbalance and encoded as 0 for "<50K" and 1 for ">=50K." Finally, the data was split into training, test, and validation sets.
 
@@ -45,13 +45,21 @@ The dataset was read using pandas and thoroughly examined. Columns were standard
 Missing values were checked again. Feature importance analysis was conducted, focusing on the target variable (salary). Both numerical and categorical variables were explored separately. Categorical features were examined in relation to the salary rate difference and mutual information. Numerical features were explored using various graphs to understand their distribution, frequency, and correlation.
 
 **3. Model Selection**:
-Using the `Pipeline` function, the most relevant categorical and numerical columns were selected. Categorical features were encoded using `OneHotEncoder`, `OrdinalEncoder`, and `TargetEncoder`. Due to the presence of significant outliers in the numerical features, they were scaled using `RobustScaler`. The preprocessor applied these transformations to two models: Random Forest and XGBoost. Cross-validation was conducted, and the best parameters were identified using `GridSearchCV`. Ultimately, a tuned XGBoost model achieved the highest F1 and ROC scores.
+Using the `Pipeline` function, the most relevant categorical and numerical columns were selected. Categorical features were encoded using `OneHotEncoder`, `OrdinalEncoder`, and `TargetEncoder`. Due to the presence of significant outliers in the numerical features, they were scaled using `RobustScaler`. The preprocessor applied these transformations to two models: Random Forest and XGBoost. Cross-validation was conducted, and the best parameters were identified using `GridSearchCV`. Ultimately, a tuned XGBoost model achieved the highest F1 and ROC scores. Because the target feature were imbalanced, it was possible to adjust the weights on both the Random Forest and XGBoost. On Random Forest, we flaged the parameter `class_weight=balanced` and for XGBoost, we had to calculate manually the `scale_pos_weigth` using the formula
+
+<div align="center">
+
+$$
+\text{scale\_pos\_weight} = \frac{\text{nº of examples from the majority class}}{\text{nº of examples from the minority class}}
+$$
+
+</div>
 
 **4. Model Saving and Loading**:
 Both the model and the preprocessor were saved together in a single pickle file for easy reuse. This file was then loaded to demonstrate an example of how predictions can be made using the saved model and preprocessing pipeline.
 
 ## Scripts
-### train.py
+### [train.py](./midterm_project/train.py)
 This file is responsible for training an XGBoost model to predict salary classes based on several features, with steps for data preprocessing, hyperparameter tuning, and saving the final model along with its preprocessor.
 
 First, the data is loaded from a .csv file, cleaned, and prepared by transforming columns to lower case and removing missing or duplicate entries. The target variable (salary) is encoded into binary values, where >50k is marked as 1 and <=50k as 0. The data is split into training, validation, and test sets to allow model training and evaluation.
@@ -62,7 +70,7 @@ The model is trained using XGBoost with `GridSearchCV`, which tests different co
 
 After training, the best-performing model and preprocessor are saved together using pickle, enabling future use for predictions. The main function orchestrates the process, training the model, evaluating it on the test data, and saving the final model.
 
-### prediction.py
+### [predict.py](./midterm_project/predict.py)
 The predict.py code is designed to deploy the trained XGBoost model as an API using FastAPI. The script loads the trained model and the preprocessor from a previously saved pickle file, which allows it to make predictions on new data inputs.
 
 First, the model and preprocessor are loaded into memory. The FastAPI framework is then used to define an API endpoint that receives prediction requests. The input data model is defined using the `BaseModel` class from Pydantic, which specifies the required fields (e.g., relationship, education, hours per week) along with their data types. This structure ensures that the incoming data matches the expected format for making predictions.
@@ -133,6 +141,8 @@ Or this example:
 ## Conclusion:
 This project provides a foundation for salary prediction using machine learning, but there are several areas where improvements can be made. 
 For example, the missing data could be handled more effectively using imputation techniques like K-Nearest Neighbors (K-NN). 
+
 Additionally, the encoding strategies could be further refined, as the choice of encoders may significantly impact model performance. 
-It's also possible that RobustScaler is not the optimal choice for scaling the numerical features, especially given the presence of numerous outliers in the dataset. 
+It's also possible that RobustScaler is not the optimal choice for scaling the numerical features, especially given the presence of numerous outliers in the dataset.
+Maybe spending more time cleaning the outliers values would bring benefits to the modedl. 
 By addressing these aspects, better metrics and more accurate predictions could be achieved.
